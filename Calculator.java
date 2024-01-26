@@ -1,92 +1,88 @@
-import java.util.Scanner;
 
+import java.util.Scanner;                               
 
-public class Calculator
-{
-    public static void main (String[]args)
-    {
-        while(true)
-        {
-            String[] operators = {"+", "-", "/", "*"};
-            String[] operators_for_split = {"\\+", "-", "/", "\\*"};
+public class Calculator{
+    public static void main(String[] args){
+        Scanner input = new Scanner(System.in);
+        Main result = new Main();
+        System.out.println("Input:");                   
+        String expression = input.nextLine();           
+        String answer = result.calc(expression);        
 
-            Scanner scn = new Scanner(System.in);
-            System.out.print("\nВведите выражение: ");
-            String line = scn.nextLine();
-
-            if (line.split("\\W").length > 2) {
-                throw new IllegalArgumentException ("т.к. формат математической операции не удовлетворяет заданию - два операнда и один оператор (+, -, /, *)");
-            }
-
-            int operator_index = -1;
-
-            for (int i = 0; i < operators.length; i++) {
-                if (line.contains(operators[i])) {
-
-                    operator_index = i;
-                }
-            }
-
-            if (operator_index == -1) {
-                throw new IllegalArgumentException ("т.к. строка не является математической операцией");
-            }
-
-            String a, b;
-
-            a = line.split(operators_for_split[operator_index])[0];
-            b = line.split(operators_for_split[operator_index])[1];
-
-
-            int number_1, number_2;
-            boolean flag_roman = false;
-
-            try {
-                number_1 = Integer.parseInt(a);
-                number_2 = Integer.parseInt(b);
-
-            } catch (IllegalArgumentException e) {
-                if (Roman_to_arabian.getArabicValue(a) == -1 || Roman_to_arabian.getArabicValue(b) == -1) {
-                    throw new IllegalArgumentException ("т.к. используются одновременно разные системы счисления");
-                }
-
-                number_1 = Roman_to_arabian.getArabicValue(a);
-                number_2 = Roman_to_arabian.getArabicValue(b);
-
-                flag_roman = true;
-            }
-
-            if (!((0 <= number_1 && number_1 <= 10) && (0 <= number_2 && number_2 <= 10))) {
-                throw new IllegalArgumentException ("т.к. введенные числа находятся не в диапазоне 1-10");
-            }
-
-            int result;
-
-            switch (operators[operator_index]) {
-                case "+":
-                    result = number_1 + number_2;
-                    break;
-                case "-":
-                    result = number_1 - number_2;
-                    break;
-                case "*":
-                    result = number_1 * number_2;
-                    break;
-                default:
-                    result = number_1 / number_2;
-                    break;
-            }
-
-            if (flag_roman)
-            {
-                System.out.println("Результат: " + Arabian_to_roman.toRoman(result));
-            } else
-            {
-                System.out.println("Результат: " + result);
-            }
-        }
+        System.out.println("Output:\n" + answer);        
     }
 }
 
+class Main {
+    public static String calc(String input){
+        boolean flag_roman = false;                      
+
+        int result = 0;                                  
+        String[] operators = {"+", "-", "/", "*"};
+        String[] operators_for_split = {"\\+", "-", "/", "\\*"};
+
+
+        String[] inputSplit = input.split("\\W");
+        if (inputSplit.length > 2 ){
+            throw new IllegalArgumentException ("т.к. формат математической операции не удовлетворяет заданию - два операнда и один оператор (+, -, /, *)");                             // Ловим, если не 3 элемента
+        }
+        int operator_index = -1;
+        for (int i = 0; i < operators.length; i++) {
+            if (input.contains(operators[i])) {
+                operator_index = i;
+            }
+        }
+        if (operator_index == -1) {
+            throw new IllegalArgumentException ("т.к. строка не является математической операцией");
+        }
+
+        String a, b;
+        a = input.split(operators_for_split[operator_index])[0];
+        b = input.split(operators_for_split[operator_index])[1];
+
+        int number_1, number_2;
+
+        try {
+            number_1 = Integer.parseInt(a);
+            number_2 = Integer.parseInt(b);
+        }  catch (IllegalArgumentException e) {
+            if (Roman_to_arabian.getArabicValue(a) == -1 || Roman_to_arabian.getArabicValue(b) == -1) {
+                throw new IllegalArgumentException ("т.к. используются одновременно разные системы счисления");
+            }
+
+            number_1 = Roman_to_arabian.getArabicValue(a);
+            number_2 = Roman_to_arabian.getArabicValue(b);
+
+            flag_roman = true;
+        }
+
+        if ((number_1 < 1) || (number_1 > 10) || (number_2 < 1) || (number_2 > 10)){
+            throw new IllegalArgumentException ("т.к. введенные числа находятся не в диапазоне 1-10");                                     
+        }
+
+        //String sign = inputSplit[2];
+        switch (operators[operator_index]) {
+            case "+" -> result = number_1 + number_2;
+            case "-" -> result = number_1 - number_2;
+            case "*" -> result = number_1 * number_2;
+            case "/" -> result = number_1 / number_2;
+            default -> {
+                throw new IllegalArgumentException ("т.к. строка не является математической операцией"); 
+            }
+        }
+        String output;                                              
+        if (flag_roman){
+            if(result < 1){
+                throw new IllegalArgumentException ("т.к. в римской системе нет отрицательных чисел");
+            } else {
+                output = Arabian_to_roman.toRoman(result);
+            }
+        } else {
+            output = Integer.toString(result);
+        }
+        return output;
+    }
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
 enum Roman_to_arabian
@@ -112,6 +108,7 @@ enum Roman_to_arabian
         }
         return -1;
     }
+    // return result;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -126,8 +123,7 @@ enum Arabian_to_roman
     private Arabian_to_roman(int value) {
         this.value = value;
     }
-    private int getValue()
-    {
+    private int getValue() {
         return value;
     }
 
@@ -150,5 +146,3 @@ enum Arabian_to_roman
         return result.toString();
     }
 }
-
-
